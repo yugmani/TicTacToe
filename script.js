@@ -1,0 +1,101 @@
+const boxEl = document.querySelectorAll(".box");
+const playText = document.getElementById("play_text");
+
+let spaces = [];
+const O_TEXT = "0";
+const X_TEXT = "X";
+let currentPlayer;
+
+const drawBoard = () => {
+  restart();
+  boxEl.forEach((box, index) => {
+    let styleString = "";
+    if (index < 3) {
+      styleString += `border-bottom:3px solid var(--purple);`;
+    }
+    if (index % 3 === 0) {
+      styleString += `border-right:3px solid var(--purple);`;
+    }
+    if (index % 3 === 2) {
+      styleString += `border-left:3px solid var(--purple);`;
+    }
+    if (index > 5) {
+      styleString += `border-top:3px solid var(--purple);`;
+    }
+    box.style = styleString;
+    box.addEventListener("click", boxClicked);
+  });
+};
+
+const boxClicked = (e) => {
+  const id = e.target.id;
+  if (!spaces[id]) {
+    spaces[id] = currentPlayer;
+    e.target.innerText = currentPlayer;
+
+    if (playerHasWon()) {
+      playText.innerText = `${currentPlayer} has won!`;
+      playText.style.visibility = "visible";
+      playText.style.display = "block";
+      return;
+    }
+    currentPlayer = currentPlayer === O_TEXT ? X_TEXT : O_TEXT;
+  }
+};
+
+const playerHasWon = () => {
+  if (spaces[0] === currentPlayer) {
+    if (spaces[1] === currentPlayer && spaces[2] === currentPlayer) {
+      console.log(`${currentPlayer} wins up top.`);
+      return true;
+    }
+    if (spaces[3] === currentPlayer && spaces[6] === currentPlayer) {
+      console.log(`${currentPlayer} wins on the left.`);
+      return true;
+    }
+    if (spaces[4] === currentPlayer && spaces[8] === currentPlayer) {
+      console.log(`${currentPlayer} wins diagonally.`);
+      return true;
+    }
+  }
+  if (spaces[8] === currentPlayer) {
+    if (spaces[2] === currentPlayer && spaces[5] === currentPlayer) {
+      console.log(`${currentPlayer} wins on the right.`);
+    }
+    if (spaces[6] === currentPlayer && spaces[7] === currentPlayer) {
+      console.log(`${currentPlayer} wins on the bottom.`);
+      return true;
+    }
+  }
+  if (spaces[4] === currentPlayer) {
+    if (spaces[1] === currentPlayer && spaces[7] === currentPlayer) {
+      console.log(`${currentPlayer} wins vertically on the middle.`);
+      return true;
+    }
+    if (spaces[3] === currentPlayer && spaces[5] === currentPlayer) {
+      console.log(`${currentPlayer} wins horizontally on the middle.`);
+      return true;
+    }
+  }
+};
+
+const restart = () => {
+  //   spaces.forEach((space, index) => {
+  //     space[index] = null;
+  //   });
+
+  spaces = [];
+  boxEl.forEach((box) => {
+    box.innerText = "";
+  });
+
+  currentPlayer = O_TEXT;
+  playText.style.display = "none";
+  playText.innerText = "";
+  playText.style.display = "hidden";
+};
+
+const reset_button = document.getElementById("restart_button");
+reset_button.addEventListener("click", restart);
+
+drawBoard();
