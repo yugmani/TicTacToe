@@ -1,101 +1,143 @@
-const boxEl = document.querySelectorAll(".box");
-const playText = document.getElementById("play_text");
+const huPlayer = "0";
+const aiPlayer = "X";
+const winCombos = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+];
 
-let spaces = [];
-const O_TEXT = "0";
-const X_TEXT = "X";
-let currentPlayer;
+const cells = document.querySelectorAll(".cell");
+startGame();
 
-const drawBoard = () => {
-  restart();
-  boxEl.forEach((box, index) => {
-    let styleString = "";
-    if (index < 3) {
-      styleString += `border-bottom:3px solid var(--purple);`;
-    }
-    if (index % 3 === 0) {
-      styleString += `border-right:3px solid var(--purple);`;
-    }
-    if (index % 3 === 2) {
-      styleString += `border-left:3px solid var(--purple);`;
-    }
-    if (index > 5) {
-      styleString += `border-top:3px solid var(--purple);`;
-    }
-    box.style = styleString;
-    box.addEventListener("click", boxClicked);
-  });
-};
-
-const boxClicked = (e) => {
-  const id = e.target.id;
-  if (!spaces[id]) {
-    spaces[id] = currentPlayer;
-    e.target.innerText = currentPlayer;
-
-    if (playerHasWon()) {
-      playText.innerText = `${currentPlayer} has won!`;
-      playText.style.visibility = "visible";
-      playText.style.display = "block";
-      return;
-    }
-    currentPlayer = currentPlayer === O_TEXT ? X_TEXT : O_TEXT;
+function startGame() {
+  document.querySelector(".endgame").style.display = "none";
+  origBoard = Array.from(Array(9).keys());
+  // console.log(origBoard);
+  for (let i = 0; i < cells.length; i++) {
+    cells[i].innerText = "";
+    cells[i].style.removeProperty("background-color");
+    cells[i].addEventListener("click", turnClick, false);
   }
-};
+}
 
-const playerHasWon = () => {
-  if (spaces[0] === currentPlayer) {
-    if (spaces[1] === currentPlayer && spaces[2] === currentPlayer) {
-      console.log(`${currentPlayer} wins up top.`);
-      return true;
-    }
-    if (spaces[3] === currentPlayer && spaces[6] === currentPlayer) {
-      console.log(`${currentPlayer} wins on the left.`);
-      return true;
-    }
-    if (spaces[4] === currentPlayer && spaces[8] === currentPlayer) {
-      console.log(`${currentPlayer} wins diagonally.`);
-      return true;
+function turnClick(e) {
+  if (typeof origBoard[e.target.id] == "number") {
+    turn(e.target.id, huPlayer);
+    if (!checkTie()) {
+      turn(bestSpot(), aiPlayer);
     }
   }
-  if (spaces[8] === currentPlayer) {
-    if (spaces[2] === currentPlayer && spaces[5] === currentPlayer) {
-      console.log(`${currentPlayer} wins on the right.`);
-    }
-    if (spaces[6] === currentPlayer && spaces[7] === currentPlayer) {
-      console.log(`${currentPlayer} wins on the bottom.`);
-      return true;
+}
+
+function turn(cellId, player) {
+  origBoard[cellId] = player;
+  document.getElementById(cellId).innerText = player;
+  let gameWon = checkWin(origBoard, player);
+  if (gameWon) {
+    gameOver(gameWon);
+  }
+}
+
+function checkWin(board, player) {
+  let plays = board.reduce((a, e, i) => (e === player ? a.concat(i) : a), []);
+
+  let gameWon = null;
+  for (let [index, win] of winCombos.entries()) {
+    if (win.every((elem) => plays.indexOf(elem) > -1)) {
+      gameWon = { index: index, player: player };
+      break;
     }
   }
-  if (spaces[4] === currentPlayer) {
-    if (spaces[1] === currentPlayer && spaces[7] === currentPlayer) {
-      console.log(`${currentPlayer} wins vertically on the middle.`);
-      return true;
+  return gameWon;
+}
+
+function gameOver(gameWon) {
+  for (let index of winCombos[gameWon.index]) {
+    document.getElementById(index).style.backgroundColor =
+      gameWon.player == huPlayer ? "blue" : "red";
+  }
+  for (let i = 0; i < cells.length; i++) {
+    cells[i].removeEventListener("click", turnClick, false);
+  }
+
+  declareWinner(gameWon.player == huPlayer ? "You Win!" : "You Lose!");
+}
+
+function declareWinner(who) {
+  document.querySelector(".endgame").style.display = "block";
+  document.querySelector(".endgame .text").innerText = who;
+}
+
+function emptySquares() {
+  return origBoard.filter((s) => typeof s == "number");
+}
+
+function bestSpot() {
+  // return emptySquares()[0];
+  return minimax(origBoard, aiPlayer).index;
+}
+
+function checkTie() {
+  if (emptySquares().length == 0) {
+    for (let i = 0; i < cells.length; i++) {
+      cells[i].style.backgroundColor = "green";
+      cells[i].removeEventListener("click", turnClick, false);
     }
-    if (spaces[3] === currentPlayer && spaces[5] === currentPlayer) {
-      console.log(`${currentPlayer} wins horizontally on the middle.`);
-      return true;
+    declareWinner("Tie Game!");
+    return true;
+  }
+  return false;
+}
+
+function minimax(newBoard, player) {
+  let availSports = emptySquares(newBoard);
+  if (checkWin(newBoard, player)) {
+    return { score: -10 };
+  } else if (checkWin(newBoard, aiPlayer)) {
+    return { score: 20 };
+  } else if (availSports.length === 0) {
+    return { score: 0 };
+  }
+
+  let moves = [];
+  for (let i = 0; i < availSports.length; i++) {
+    let move = {};
+    move.index = newBoard[availSports[i]];
+    newBoard[availSports[i]] = player;
+    if (player == aiPlayer) {
+      let result = minimax(newBoard, huPlayer);
+      move.score = result.score;
+    } else {
+      let result = minimax(newBoard, aiPlayer);
+      move.score = result.score;
+    }
+
+    newBoard[availSports[i]] = move.index;
+    moves.push(move);
+  }
+
+  let bestMove;
+  if (player === aiPlayer) {
+    let bestScore = -10000;
+    for (let i = 0; i < moves.length; i++) {
+      if (moves[i].score > bestScore) {
+        bestScore = moves[i].score;
+        bestMove = i;
+      }
+    }
+  } else {
+    let bestScore = 10000;
+    for (let i = 0; i < moves.length; i++) {
+      if (moves[i].score < bestScore) {
+        bestScore = moves[i].score;
+        bestMove = i;
+      }
     }
   }
-};
-
-const restart = () => {
-  //   spaces.forEach((space, index) => {
-  //     space[index] = null;
-  //   });
-
-  spaces = [];
-  boxEl.forEach((box) => {
-    box.innerText = "";
-  });
-
-  currentPlayer = O_TEXT;
-  playText.style.display = "none";
-  playText.innerText = "";
-  playText.style.display = "hidden";
-};
-
-const reset_button = document.getElementById("restart_button");
-reset_button.addEventListener("click", restart);
-
-drawBoard();
+  return moves[bestMove];
+}

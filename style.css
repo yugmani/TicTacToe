@@ -29,25 +29,6 @@ h1 {
     flex-direction:column;
 }
 
-#game_board {
-    width:450px;
-    display:flex;
-    justify-content: center;
-    align-items:center;
-    flex-wrap:wrap;
-    margin-top:40px;
-}
-
-.box {
-    height:120px;
-    width:120px;
-    display:flex;
-    justify-content:center;
-    color:var(--purple);
-    font-size: 120PX;
-    align-items: center;
-    padding:15px;
-}
 
 button {
     padding:10px 20px;
@@ -65,32 +46,54 @@ button:hover {
     transform:translateY(-2px);
 }
 
-#play_text {
-   margin:0 auto;
-    width:800px;
-    max-height:100px;
-    display:none;
-    visibility: hidden;
-   color:var(--green);
-   font-size:80px;
-   font-weight:600;
-   text-align:center;
-   margin-top:15px;
-    padding:15px;
-    animation:winnerText 5s linear 1s infinite alternate;
+td {
+    border:2px solid #333;
+    height:100px;
+    width:100px;
+    text-align:center;
+    vertical-align:middle;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-size:70px;
+    cursor:pointer;
 }
 
-@keyframes winnerText {
-    0% {
-        transform:scale(1);
-    }
-    35% {
-        transform:scale(1.04);
-    }
-    60% {
-        transform:scale(1.08);
-    }
-    100% {
-        transform:scale(1.1);
-    }
+table {
+    border-collapse:collapse;
+    position:absolute;
+    left:50%;
+    margin-left:-155px;
+    top:300px;
+}
+
+table tr:first-child td {
+    border-top:none;
+}
+
+table tr:last-child td {
+    border-bottom:none;
+}
+
+table tr td:first-child {
+    border-left:none;
+}
+
+table tr td:last-child {
+    border-right:none;
+}
+
+.endgame {
+    display:none;
+    width:200px;
+    top:400px;
+    background-color:var(--green);
+    position: absolute;
+    left:50%;
+    margin-left:-100px;
+    padding-top:50px;
+    padding-bottom:50px;
+    text-align:center;
+    border-radius:5px;
+    color:white;
+    font-size:2em;
+
 }
